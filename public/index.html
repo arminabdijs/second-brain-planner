@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ذهن دوم | طراحی رسمی</title>
+
+    <link rel="stylesheet" href="./styles/fonts.css" />
+    <link rel="stylesheet" href="./styles/style.css" />
+    <link rel="stylesheet" href="./styles/app.css" />
+
+    <script src="./scripts/chart.umd.min.js"></script>
+  </head>
+  <body class="py-6 px-3 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row items-center justify-between pb-4 border-b border-[#242830] gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-[#0842a0] text-[#d3e3fd] flex items-center justify-center shadow-md">
+          <span class="material-symbols-rounded text-2xl filled">neurology</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-[#e2e2e6] tracking-tight">ذهن دوم</h1>
+          </div>
+          <p class="text-xs text-[#8e9198] mt-0.5">سیستم مدیریت متمرکز زمان، پروژه‌ها و بلوک‌های ۲۴ ساعته</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="openModal('taskModal')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full bg-[#a8c7fa] text-[#04305c] hover:bg-[#c2e7ff] transition">
+          <span class="material-symbols-rounded text-base">add_task</span>
+          <span>کار جدید</span>
+        </button>
+        <button onclick="openModal('habitModal')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full bg-[#333a47] text-[#d9e2f2] hover:bg-[#3f4756] transition">
+          <span class="material-symbols-rounded text-base text-[#6dd58c]">local_fire_department</span>
+          <span>عادت جدید</span>
+        </button>
+        <button onclick="openModal('projectModal')" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full bg-[#333a47] text-[#d9e2f2] hover:bg-[#3f4756] transition">
+          <span class="material-symbols-rounded text-base text-[#d0bcff]">folder</span>
+          <span>پروژه جدید</span>
+        </button>
+        <button onclick="openCustomBlockModal()" class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full bg-[#3b2d00] text-[#ffe08b] hover:bg-[#4d3b00] border border-[#5c4400] transition">
+          <span class="material-symbols-rounded text-base">more_time</span>
+          <span>+ بازه دلخواه</span>
+        </button>
+
+        <div class="h-6 w-px bg-[#32353d] mx-1 hidden sm:block"></div>
+
+        <button onclick="exportBackup()" title="دانلود بکاپ JSON" class="p-2 text-xs bg-[#1d2026] hover:bg-[#272a31] text-[#c4c7c5] rounded-full border border-[#2d3139] transition flex items-center">
+          <span class="material-symbols-rounded text-lg">download</span>
+        </button>
+        <button onclick="document.getElementById('importFile').click()" title="بارگذاری بکاپ" class="p-2 text-xs bg-[#1d2026] hover:bg-[#272a31] text-[#c4c7c5] rounded-full border border-[#2d3139] transition flex items-center">
+          <span class="material-symbols-rounded text-lg">upload</span>
+        </button>
+        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)" />
+      </div>
+    </header>
+
+    <!-- Layout Container -->
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- ستون اول: ساعت، تایمر، عادت‌ها، PARA (۴ ستون) -->
+      <div class="lg:col-span-4 flex flex-col gap-6">
+        <!-- ۱. ویجت ساعت Google Clock -->
+        <div class="m3-surface-card p-6 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between text-xs text-[#8e9198] mb-3">
+            <span class="flex items-center gap-1 font-medium text-[#a8c7fa]">
+              <span class="material-symbols-rounded text-base filled">schedule</span>
+              <span>زمان زنده سیستم</span>
+            </span>
+            <span id="dateDisplay" class="text-[11px] text-[#c4c7c5]">...</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 my-2" dir="ltr">
+            <div class="m3-clock-tile w-24 h-28 sm:w-28 sm:h-32 flex items-center justify-center">
+              <span id="clockHours" class="m3-clock-font text-5xl sm:text-6xl font-extrabold text-[#a8c7fa] tracking-tight">00</span>
+            </div>
+            <div class="m3-clock-tile w-24 h-28 sm:w-28 sm:h-32 flex items-center justify-center">
+              <span id="clockMinutes" class="m3-clock-font text-5xl sm:text-6xl font-extrabold text-[#a8c7fa] tracking-tight">00</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between w-full px-2 mt-3 pt-3 border-t border-[#2d3139]">
+            <span id="dayNameDisplay" class="text-xs font-bold tracking-widest text-[#a8c7fa] uppercase m3-clock-font">TUESDAY</span>
+            <div class="text-xs text-[#8e9198] flex items-center gap-1">
+              <span>ثانیه:</span>
+              <span id="clockSeconds" class="font-bold text-[#e2e2e6] m3-clock-font">00</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-[#2d3139] w-full">
+            <label class="text-[11px] font-semibold text-[#ffd99f] flex items-center gap-1 mb-1.5">
+              <span class="material-symbols-rounded text-sm filled text-[#ffb951]">stars</span>
+              <span>تمرکز محوری امروز:</span>
+            </label>
+            <input type="text" id="dailyFocusInput" placeholder="مهم‌ترین دستاورد امروز چیست؟" oninput="updateDailyFocus(this.value)" class="w-full text-xs bg-[#171a1f] border border-[#2d3139] rounded-xl px-3 py-2 text-[#e2e2e6] placeholder-[#5c6169] focus:outline-none focus:border-[#a8c7fa] transition" />
+          </div>
+        </div>
+
+        <!-- ۲. تایمر کار عمیق M3 -->
+        <div class="m3-surface-card p-5">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#2d3139]">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base text-[#f2b8b5]">timer</span>
+              <span>تایمر تمرکز عمیق</span>
+            </h2>
+            <span id="timerBadge" class="text-[10px] px-2.5 py-0.5 rounded-full bg-[#0842a0] text-[#d3e3fd] font-medium">۲۵ دقیقه</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-2 my-2" dir="ltr">
+            <div class="m3-timer-box px-4 py-2 flex flex-col items-center">
+              <input type="text" id="inputTimerMin" value="25" maxlength="3" onfocus="onTimerInputFocus(this)" onblur="onTimerMinBlur(this)" onkeydown="onTimerInputKeyDown(event, this)" class="m3-digit-input text-4xl sm:text-5xl" title="کلیک برای تغییر دقیقه" />
+              <span class="text-[10px] text-[#8e9198] mt-0.5 font-medium">دقیقه</span>
+            </div>
+
+            <span class="text-3xl font-bold text-[#8e9198] -mt-4">:</span>
+
+            <div class="m3-timer-box px-4 py-2 flex flex-col items-center">
+              <input type="text" id="inputTimerSec" value="00" maxlength="2" onfocus="onTimerInputFocus(this)" onblur="onTimerSecBlur(this)" onkeydown="onTimerInputKeyDown(event, this)" class="m3-digit-input text-4xl sm:text-5xl" title="کلیک برای تغییر ثانیه" />
+              <span class="text-[10px] text-[#8e9198] mt-0.5 font-medium">ثانیه</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-center text-[#8e9198] mb-3">برای تغییر زمان، روی رقم کلیک و عدد جدید را وارد کنید</p>
+
+          <div class="flex items-center justify-between gap-2 pt-3 border-t border-[#2d3139]">
+            <div class="flex items-center gap-2">
+              <button id="btnTimerToggle" onclick="toggleTimer()" class="px-4 py-2 text-xs font-bold rounded-full bg-[#a8c7fa] text-[#04305c] hover:bg-[#c2e7ff] transition flex items-center gap-1">
+                <span class="material-symbols-rounded text-sm filled">play_arrow</span>
+                <span>شروع</span>
+              </button>
+              <button onclick="resetTimer()" class="px-3.5 py-2 text-xs font-medium rounded-full bg-[#272a31] text-[#c4c7c5] hover:bg-[#32353d] transition">بازنشانی</button>
+            </div>
+            <button onclick="switchTimerMode()" class="px-3.5 py-2 text-xs font-medium rounded-full bg-[#272a31] text-[#8e9198] hover:text-[#e2e2e6] transition">استراحت ۵ دقیقه</button>
+          </div>
+        </div>
+
+        <!-- ۳. ردیاب عادات -->
+        <div class="m3-surface-card p-5 flex flex-col flex-1">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#2d3139]">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base text-[#6dd58c] filled">check_circle</span>
+              <span>پایش عادات روزانه</span>
+            </h2>
+            <span id="habitsScore" class="text-[10px] m3-num-font px-2.5 py-0.5 rounded-full bg-[#173822] text-[#85e4a0]">0%</span>
+          </div>
+          <div id="habitsList" class="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- ۴. دسته‌بندی معماری PARA -->
+        <div class="m3-surface-card p-4">
+          <div class="grid grid-cols-2 gap-2 text-xs m3-num-font">
+            <div class="p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] flex justify-between items-center">
+              <span class="text-[#8e9198] font-sans">پروژه‌ها</span>
+              <span id="paraProjects" class="font-bold text-[#d0bcff]">0</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] flex justify-between items-center">
+              <span class="text-[#8e9198] font-sans">کارهای باز</span>
+              <span id="paraTasks" class="font-bold text-[#a8c7fa]">0</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] flex justify-between items-center">
+              <span class="text-[#8e9198] font-sans">عادت‌ها</span>
+              <span id="paraHabits" class="font-bold text-[#6dd58c]">0</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] flex justify-between items-center">
+              <span class="text-[#8e9198] font-sans">بلوک‌های ثبت‌شده</span>
+              <span id="paraBlocks" class="font-bold text-[#ffd99f]">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ستون دوم: نمودار، پروژه‌ها، تسک‌ها، بلوک‌های ۲۴ ساعته + بازه‌های دلخواه (۸ ستون) -->
+      <div class="lg:col-span-8 flex flex-col gap-6">
+        <!-- نمودار پیشرفت ۳۰ روزه -->
+        <div class="m3-surface-card p-5">
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base text-[#a8c7fa]">monitoring</span>
+                <span>شاخص پیوستگی و عملکرد فردی (۳۰ روز اخیر)</span>
+              </h2>
+              <p class="text-[11px] text-[#8e9198] mt-0.5">محاسبه خودکار از انجام وظایف، استمرار عادات و پوشش تایم‌باکسینگ</p>
+            </div>
+            <span class="text-[10px] text-[#a8c7fa] bg-[#004a77] px-2.5 py-0.5 rounded-full font-medium">LIVE GRAPH</span>
+          </div>
+          <div class="h-44 w-full">
+            <canvas id="performanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- ردیف پروژه‌ها و تسک‌ها -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- پروژه‌ها -->
+          <div class="m3-surface-card p-5 flex flex-col">
+            <div class="flex justify-between items-center pb-3 mb-3 border-b border-[#2d3139]">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-[#d0bcff] flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base filled">folder_open</span>
+                <span>پروژه‌های در دست اقدام</span>
+              </h2>
+              <span id="projectsCount" class="text-[10px] text-[#8e9198] m3-num-font">0 پروژه</span>
+            </div>
+            <div id="projectsList" class="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- تسک‌ها -->
+          <div class="m3-surface-card p-5 flex flex-col">
+            <div class="flex justify-between items-center pb-3 mb-3 border-b border-[#2d3139]">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-[#a8c7fa] flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base filled">checklist</span>
+                <span>وظایف روزانه</span>
+              </h2>
+              <span id="tasksCounter" class="text-[10px] text-[#8e9198] m3-num-font">0 / 0</span>
+            </div>
+
+            <div class="flex gap-1.5 mb-3">
+              <button onclick="filterTasks('all')" id="filter-all" class="text-[10px] px-3 py-1 rounded-full bg-[#a8c7fa] text-[#04305c] font-bold transition">همه</button>
+              <button onclick="filterTasks('high')" id="filter-high" class="text-[10px] px-3 py-1 rounded-full bg-[#272a31] text-[#c4c7c5] transition">فوری</button>
+              <button onclick="filterTasks('pending')" id="filter-pending" class="text-[10px] px-3 py-1 rounded-full bg-[#272a31] text-[#8e9198] transition">ناتمام</button>
+            </div>
+
+            <div id="tasksList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+
+        <!-- بخش پیشرفته تایم‌باکسینگ (۲۴ ساعته کامل + بازه‌های سفارشی) -->
+        <div class="m3-surface-card p-5">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-3 mb-3 border-b border-[#2d3139]">
+            <div>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-base text-[#ffd99f]">calendar_clock</span>
+                <span>بلوک‌بندی زمانی ۲۴ ساعته (Full 24-Hour Timeline)</span>
+              </h2>
+              <p class="text-[11px] text-[#8e9198] mt-0.5">ساعات شبانه‌روز (۰۰ تا ۲۳) یا بازه‌های زمانی دلخواه خود را ثبت کنید</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <!-- سوئیچر نما -->
+              <div class="flex rounded-full bg-[#171a1f] p-0.5 border border-[#2d3139]">
+                <button onclick="switchTimelineTab('grid')" id="tabBtnGrid" class="text-[10px] px-3 py-1 rounded-full bg-[#a8c7fa] text-[#04305c] font-bold transition">شبکه ۲۴ ساعته</button>
+                <button onclick="switchTimelineTab('custom')" id="tabBtnCustom" class="text-[10px] px-3 py-1 rounded-full text-[#8e9198] hover:text-white transition">
+                  بازه‌های دلخواه (
+                  <span id="customSpansCount">0</span>
+                  )
+                </button>
+              </div>
+              <button onclick="clearTimeline()" class="text-[10px] text-[#f2b8b5] hover:underline transition mr-2">پاکسازی</button>
+            </div>
+          </div>
+
+          <!-- نمای اول: شبکه ۲۴ ساعته کامل (۰۰:۰۰ تا ۲۳:۰۰) -->
+          <div id="timelineGridView" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            <!-- با جاوااسکریپت ۲۴ ساعت پر می‌شود -->
+          </div>
+
+          <!-- نمای دوم: لیست بازه‌های زمانی دلخواه واردشده توسط کاربر -->
+          <div id="timelineCustomView" class="hidden flex-col gap-2 max-h-72 overflow-y-auto">
+            <!-- با جاوااسکریپت رندر می‌شود -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- مودال‌ها -->
+    <!-- ۱. تسک جدید -->
+    <div id="taskModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+      <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-rounded text-[#a8c7fa]">add_task</span>
+          <span>تعریف وظیفه جدید</span>
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">عنوان کار:</label>
+            <input type="text" id="taskTitleInput" placeholder="مثال: بازبینی نهایی کدها" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#a8c7fa]" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-[#8e9198] block mb-1">اولویت:</label>
+              <select id="taskPriorityInput" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                <option value="high">🔥 فوری و مهم</option>
+                <option value="medium">⚡ مهم و عادی</option>
+                <option value="low">🌱 جزئی</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-[#8e9198] block mb-1">انتساب به پروژه:</label>
+              <select id="taskProjectSelect" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                <option value="">مستقل (بدون پروژه)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="closeModal('taskModal')" class="px-4 py-2 text-xs text-[#8e9198] hover:text-white">انصراف</button>
+          <button onclick="createTask()" class="px-5 py-2 text-xs font-bold rounded-full bg-[#a8c7fa] text-[#04305c] hover:bg-[#c2e7ff]">ذخیره وظیفه</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۲. عادت جدید -->
+    <div id="habitModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+      <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-rounded text-[#6dd58c]">local_fire_department</span>
+          <span>تعریف عادت جدید</span>
+        </h3>
+        <div>
+          <label class="text-[11px] text-[#8e9198] block mb-1">نام عادت:</label>
+          <input type="text" id="habitTitleInput" placeholder="مثال: ۳۰ دقیقه مطالعه عمیق" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#6dd58c]" />
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="closeModal('habitModal')" class="px-4 py-2 text-xs text-[#8e9198] hover:text-white">انصراف</button>
+          <button onclick="createHabit()" class="px-5 py-2 text-xs font-bold rounded-full bg-[#6dd58c] text-[#0a3818] hover:bg-[#85e4a0]">ثبت عادت</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۳. پروژه جدید -->
+    <div id="projectModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+      <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <span class="material-symbols-rounded text-[#d0bcff]">folder</span>
+          <span>تعریف پروژه جدید</span>
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">نام پروژه:</label>
+            <input type="text" id="projectTitleInput" placeholder="مثال: سیستم هوشمند رشد" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#d0bcff]" />
+          </div>
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">دسته‌بندی (Category):</label>
+            <input type="text" id="projectCategoryInput" placeholder="مثال: فنی، کاری، رشد فردی" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="closeModal('projectModal')" class="px-4 py-2 text-xs text-[#8e9198] hover:text-white">انصراف</button>
+          <button onclick="createProject()" class="px-5 py-2 text-xs font-bold rounded-full bg-[#d0bcff] text-[#381e72] hover:bg-[#e8def8]">ثبت پروژه</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۴. ویرایش بلوک ساعت ثابت (شبکه ۲۴ ساعته) -->
+    <div id="timeBlockModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+      <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <span class="material-symbols-rounded text-[#ffd99f]">schedule</span>
+          <span id="timeBlockTitle">ویرایش ساعت</span>
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">عنوان فعالیت:</label>
+            <input type="text" id="timeBlockInput" placeholder="مثال: کار عمیق روی توسعه هسته" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd99f]" />
+          </div>
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">نوع برچسب:</label>
+            <select id="timeBlockType" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none">
+              <option value="deep">🧠 کار عمیق (Deep Work)</option>
+              <option value="meeting">🤝 جلسه / ارتباطات</option>
+              <option value="fitness">🏃 ورزش / استراحت</option>
+              <option value="routine">📋 کار اداری / روتین</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-between items-center mt-6">
+          <button onclick="deleteActiveBlock()" class="text-xs text-[#f2b8b5] hover:underline">حذف بلوک</button>
+          <div class="flex gap-2">
+            <button onclick="closeModal('timeBlockModal')" class="px-4 py-2 text-xs text-[#8e9198] hover:text-white">انصراف</button>
+            <button onclick="saveActiveBlock()" class="px-5 py-2 text-xs font-bold rounded-full bg-[#ffd99f] text-[#3f2e00] hover:bg-[#ffe2ab]">ذخیره</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۵. مودال ایجاد بازه زمانی دلخواه (Custom Time Span) -->
+    <div id="customBlockModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+      <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <span class="material-symbols-rounded text-[#ffe08b]">more_time</span>
+          <span>تعریف بازه زمانی دلخواه</span>
+        </h3>
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-2" dir="ltr">
+            <div>
+              <label class="text-[11px] text-[#8e9198] block mb-1 text-right">ساعت شروع:</label>
+              <input type="time" id="customStartTime" value="09:00" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-[#ffd99f] text-center" />
+            </div>
+            <div>
+              <label class="text-[11px] text-[#8e9198] block mb-1 text-right">ساعت پایان:</label>
+              <input type="time" id="customEndTime" value="11:30" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2 text-xs text-white focus:outline-none focus:border-[#ffd99f] text-center" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">عنوان فعالیت یا هدف:</label>
+            <input type="text" id="customActivityTitle" placeholder="مثال: تمرکز بر تسک‌های پروژه الف" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd99f]" />
+          </div>
+
+          <div>
+            <label class="text-[11px] text-[#8e9198] block mb-1">نوع برچسب:</label>
+            <select id="customActivityType" class="w-full bg-[#111318] border border-[#2d3139] rounded-xl p-2.5 text-xs text-white focus:outline-none">
+              <option value="deep">🧠 کار عمیق (Deep Work)</option>
+              <option value="meeting">🤝 جلسه / ارتباطات</option>
+              <option value="fitness">🏃 ورزش / استراحت</option>
+              <option value="routine">📋 کار اداری / روتین</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="closeModal('customBlockModal')" class="px-4 py-2 text-xs text-[#8e9198] hover:text-white">انصراف</button>
+          <button onclick="saveCustomTimeSpan()" class="px-5 py-2 text-xs font-bold rounded-full bg-[#ffe08b] text-[#3f2e00] hover:bg-[#fff0c2]">ثبت بازه</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال اختصاصی پایان تایمر و مدیریت صدای زنگ -->
+    <div id="alarmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+      <div class="alarm-card">
+        <!-- آیکون زنگ -->
+        <div class="alarm-icon-box">
+          <span class="material-symbols-rounded text-3xl filled">notifications_active</span>
+        </div>
+
+        <h3 id="alarmTitle" class="text-base font-bold text-white mb-1">زمان تمرکز به پایان رسید!</h3>
+        <p id="alarmSubtitle" class="text-xs text-[#8e9198] mb-5 max-w-xs leading-relaxed">خسته نباشید! وقت آن است که چند دقیقه استراحت کنید.</p>
+
+        <!-- دکمه‌های کنترل با نسبت متقارن و استاندارد -->
+        <div class="flex items-center gap-2 w-full mb-4" dir="rtl">
+          <button onclick="dismissAlarm(true)" class="alarm-action-btn flex-1 bg-[#a8c7fa] text-[#04305c] hover:bg-[#c2e7ff]">
+            <span class="material-symbols-rounded text-base filled">notifications_off</span>
+            <span>قطع صدا و استراحت</span>
+          </button>
+          <button onclick="dismissAlarm(false)" class="alarm-action-btn px-5 bg-[#272a31] text-[#c4c7c5] hover:bg-[#333a47] border border-[#323742]">بستن</button>
+        </div>
+
+        <!-- باکس تنظیمات زنگ بعدی -->
+        <div class="alarm-settings-box">
+          <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-[#242830]">
+            <span class="text-xs font-bold text-[#ffd99f] flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-base">music_note</span>
+              <span>تنظیم زنگ هشدار بعدی</span>
+            </span>
+            <span class="text-[10px] text-[#6dd58c] bg-[#173822] px-2 py-0.5 rounded-full">ذخیره خودکار</span>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <select id="alarmSoundSelect" onchange="changeAlarmSound(this.value)" class="flex-1 focus:outline-none">
+                <option value="synth-bell">🔔 زنگ سینت‌سایزر پیش‌فرض</option>
+                <option value="synth-digital">📟 بوق دیجیتالی پرانرژی</option>
+                <option value="synth-zen">🧘 ملایم ذن (چایمز)</option>
+                <option value="custom-file">📁 فایل صوتی اختصاصی از سیستم...</option>
+              </select>
+              <button onclick="testCurrentAlarmSound()" class="w-9 h-9 rounded-xl bg-[#272a31] hover:bg-[#333a47] text-[#a8c7fa] flex items-center justify-center border border-[#323742] transition flex-shrink-0" title="تست صدا">
+                <span class="material-symbols-rounded text-lg">volume_up</span>
+              </button>
+            </div>
+
+            <div id="customSoundUploadBox" class="hidden flex-col gap-1 mt-1 pt-2 border-t border-[#1f222b]">
+              <label class="text-[10px] text-[#8e9198]">انتخاب فایل از کامپیوتر (MP3 / WAV / M4A):</label>
+              <input type="file" id="alarmAudioFileInput" accept="audio/*" onchange="handleCustomAudioFile(event)" class="w-full text-xs" />
+              <p id="customFileName" class="text-[10px] text-[#6dd58c] mt-0.5 truncate"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./scripts/script.js"></script>
+  </body>
+</html>

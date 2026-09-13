@@ -1,0 +1,179 @@
+:root {
+  --md-sys-color-surface: #111318;
+  --md-sys-color-surface-container: #1d2026;
+  --md-sys-color-surface-container-high: #272a31;
+  --md-sys-color-surface-container-highest: #32353d;
+  --md-sys-color-primary: #a8c7fa;
+  --md-sys-color-outline-variant: #2d3139;
+}
+
+* {
+  user-select: none;
+}
+body {
+  font-family:
+    "Vazirmatn",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background-color: var(--md-sys-color-surface);
+  color: #e2e2e6;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m3-clock-font {
+  font-family: "Chakra Petch", sans-serif;
+}
+.m3-num-font {
+  font-family: "Roboto Flex", sans-serif;
+  font-feature-settings: "tnum";
+}
+
+.material-symbols-rounded {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  vertical-align: middle;
+}
+.material-symbols-rounded.filled {
+  font-variation-settings: "FILL" 1;
+}
+
+.m3-surface-card {
+  background-color: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 24px;
+  transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.m3-surface-card:hover {
+  border-color: #3e4450;
+}
+
+.m3-clock-tile {
+  background-color: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 20px;
+}
+
+.m3-timer-box {
+  background-color: var(--md-sys-color-surface-container-high);
+  border: 1px solid transparent;
+  border-radius: 18px;
+  transition: all 0.2s;
+}
+.m3-timer-box:focus-within {
+  background-color: var(--md-sys-color-surface-container-highest);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 2px rgba(168, 199, 250, 0.25);
+}
+
+.m3-digit-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 2.2ch;
+  font-family: "Chakra Petch", sans-serif;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #32353d;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #44474e;
+}
+
+/* تضمین مخفی ماندن مودال‌ها در صورت وجود کلاس hidden */
+[id$="Modal"].hidden {
+  display: none !important;
+}
+[id$="Modal"]:not(.hidden) {
+  display: flex !important;
+}
+/* استایل قطعی مودال آلارم با ابعاد مشخص و طراحی لوکس M3 */
+#alarmModal .alarm-card {
+  width: 100% !important;
+  max-width: 440px !important;
+  background-color: #1a1d24 !important;
+  border: 1px solid #323742 !important;
+  border-radius: 28px !important;
+  box-shadow:
+    0 20px 40px -15px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(168, 199, 250, 0.08) !important;
+  padding: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+#alarmModal .alarm-icon-box {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 20px !important;
+  background: rgba(242, 184, 181, 0.12) !important;
+  border: 1px solid rgba(242, 184, 181, 0.25) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 14px !important;
+  color: #f2b8b5 !important;
+}
+
+#alarmModal .alarm-action-btn {
+  height: 42px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+
+#alarmModal .alarm-settings-box {
+  background: #12141a !important;
+  border: 1px solid #272a33 !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+  width: 100% !important;
+  text-align: right !important;
+  box-sizing: border-box !important;
+}
+
+#alarmModal select,
+#alarmModal input[type="file"] {
+  background-color: #191c24 !important;
+  border: 1px solid #2c303c !important;
+  color: #e2e2e6 !important;
+  border-radius: 12px !important;
+  padding: 8px 12px !important;
+  font-size: 11px !important;
+}
+
+/* مات کردن و تاریکی پس‌زمینه هنگام باز شدن مودال‌ها */
+#alarmModal,
+[id$="Modal"] {
+  background-color: rgba(0, 0, 0, 0.72) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  backdrop-filter: blur(6px) !important;
+  transition:
+    backdrop-filter 0.25s ease,
+    background-color 0.25s ease;
+}

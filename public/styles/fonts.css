@@ -1,0 +1,71 @@
+/* ==========================================================================
+   ۱. فونت وزیرمتن (Vazirmatn)
+   ========================================================================== */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   ۲. فونت ساعت دیجیتال (Chakra Petch)
+   ========================================================================== */
+@font-face {
+  font-family: "Chakra Petch";
+  src: url("../assets/fonts/ChakraPetch-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   ۳. فونت متغیر اعداد (Roboto Flex)
+   ========================================================================== */
+@font-face {
+  font-family: "Roboto Flex";
+  src: url("../assets/fonts/RobotoFlex-VariableFont_GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf") format("truetype");
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   ۴. فونت آیکون‌های متریال سمبل (Material Symbols Rounded)
+   ========================================================================== */
+@font-face {
+  font-family: "Material Symbols Rounded";
+  src: url("../assets/fonts/material-symbols-rounded-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+/* استایل و فعال‌سازی تبدیل نام به نماد (Ligatures) */
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga" 1;
+  -webkit-font-feature-settings: "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+}

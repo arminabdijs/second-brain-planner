@@ -1,0 +1,26 @@
+{
+  "name": "coffee__shop",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/arminabdijs/Coffee__Shop#readme",
+  "bugs": {
+    "url": "https://github.com/arminabdijs/Coffee__Shop/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arminabdijs/Coffee__Shop.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./public/styles/app.css --watch",
+    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./public/styles/app.css --minify"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwind-scrollbar": "^4.0.2",
+    "tailwindcss": "^4.3.3"
+  }
+}
