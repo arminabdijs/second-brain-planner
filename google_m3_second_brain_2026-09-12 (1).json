@@ -1,0 +1,72 @@
+{
+  "dailyFocus": "توسعه وب جاوااسکریپت + یادگیری مکمل PHP و اسکریپت‌های پایتون",
+  "tasks": [
+    {
+      "id": 1,
+      "title": "جاوااسکریپت",
+      "priority": "high",
+      "projectId": null,
+      "done": false
+    },
+    {
+      "id": 2,
+      "title": "زبان انگلیسی (۱ ساعت)",
+      "priority": "high",
+      "projectId": null,
+      "done": false
+    },
+    {
+      "id": 3,
+      "title": "ریاضی و الگوریتم (۱ ساعت)",
+      "priority": "medium",
+      "projectId": null,
+      "done": false
+    },
+    {
+      "id": 4,
+      "title": "PHP",
+      "priority": "medium",
+      "projectId": null,
+      "done": false
+    },
+    {
+      "id": 5,
+      "title": "پایتون",
+      "priority": "low",
+      "projectId": null,
+      "done": false
+    },
+    {
+      "id": 6,
+      "title": "کلاس و کار",
+      "priority": "high",
+      "projectId": null,
+      "done": false
+    }
+  ],
+  "habits": [
+    { "id": 101, "title": "خواب به موقع و حداقل ۶ ساعت", "streak": 1, "doneToday": false },
+    { "id": 102, "title": "۱ ساعت زبان انگلیسی", "streak": 1, "doneToday": false },
+    { "id": 103, "title": "توسعه عمیق جاوااسکریپت", "streak": 1, "doneToday": false }
+  ],
+  "projects": [],
+  "timeBlocks": {},
+  "customSpans": [
+    { "id": 1, "start": "00:00", "end": "06:15", "title": "خواب عمیق و ریکاوری", "type": "fitness" },
+    { "id": 2, "start": "06:15", "end": "06:45", "title": "بیداری، کشش و صبحانه", "type": "routine" },
+    { "id": 3, "start": "06:45", "end": "07:45", "title": "زبان انگلیسی", "type": "deep" },
+    { "id": 4, "start": "07:45", "end": "08:00", "title": "استراحت و چای", "type": "fitness" },
+    { "id": 5, "start": "08:00", "end": "10:15", "title": "جاوااسکریپت", "type": "deep" },
+    { "id": 6, "start": "10:15", "end": "10:30", "title": "استراحت", "type": "fitness" },
+    { "id": 7, "start": "10:30", "end": "11:30", "title": "ریاضی و الگوریتم", "type": "deep" },
+    { "id": 8, "start": "11:30", "end": "11:40", "title": "استراحت", "type": "fitness" },
+    { "id": 9, "start": "11:40", "end": "12:20", "title": "PHP", "type": "deep" },
+    { "id": 10, "start": "12:20", "end": "12:30", "title": "استراحت", "type": "fitness" },
+    { "id": 11, "start": "12:30", "end": "13:10", "title": "پایتون", "type": "deep" },
+    { "id": 12, "start": "13:10", "end": "13:40", "title": "ناهار و آماده‌سازی برای کلاس/کار", "type": "routine" },
+    { "id": 13, "start": "13:40", "end": "23:20", "title": "کلاس و کار", "type": "routine" },
+    { "id": 14, "start": "23:20", "end": "23:40", "title": "شام", "type": "routine" },
+    { "id": 15, "start": "23:40", "end": "00:00", "title": "فیلم و سرگرمی", "type": "fitness" }
+  ],
+  "history": {}
+}
