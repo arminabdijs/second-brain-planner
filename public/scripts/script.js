@@ -1,6 +1,4 @@
-/* =============================================================
-   ۱. مدیریت استیت و متغیرهای سراسری (State Engine)
-   ============================================================= */
+
 const STORAGE_KEY = "google_m3_second_brain_v7_24h";
 
 const defaultState = {
@@ -8,8 +6,8 @@ const defaultState = {
   tasks: [],
   habits: [],
   projects: [],
-  timeBlocks: {}, // بلوک‌های ساعتی شبانه‌روز
-  customSpans: [], // بازه‌های زمانی دلخواه
+  timeBlocks: {},
+  customSpans: [],
   history: {},
 };
 
@@ -31,9 +29,8 @@ let state = loadState();
 let currentTaskFilter = "all";
 let editingHour = null;
 let chartInstance = null;
-let activeTimelineTab = "grid"; // 'grid' | 'custom'
+let activeTimelineTab = "grid";
 
-// متغیرهای سیستم آلارم
 let alarmAudioElement = null;
 let synthAlarmInterval = null;
 let testSoundTimeout = null;
@@ -50,9 +47,6 @@ function saveState() {
   }
 }
 
-/* =============================================================
-   ۲. ساعت زنده سیستم
-   ============================================================= */
 const weekDays = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
 
 function updateLiveClock() {
@@ -73,9 +67,6 @@ function updateDailyFocus(val) {
   saveState();
 }
 
-/* =============================================================
-   ۳. سیستم صوتی و آلارم اتمام زمان (Web Audio API + Custom Files)
-   ============================================================= */
 let sharedAudioCtx = null;
 function getAudioContext() {
   if (!sharedAudioCtx) {
@@ -87,7 +78,6 @@ function getAudioContext() {
   return sharedAudioCtx;
 }
 
-// تولید صداهای دقیق و سبک سینت‌سایزر بدون نیاز به فایل خارجی
 function playSynthesizedSound(type) {
   try {
     const ctx = getAudioContext();
@@ -120,13 +110,12 @@ function playSynthesizedSound(type) {
         osc.stop(now + i * 0.18 + 1.3);
       });
     } else {
-      // synth-bell پیش‌فرض
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = "sine";
-      osc.frequency.setValueAtTime(659.25, now); // نت E5
+      osc.frequency.setValueAtTime(659.25, now);
       gain.gain.setValueAtTime(0.25, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
       osc.start(now);
@@ -137,12 +126,10 @@ function playSynthesizedSound(type) {
   }
 }
 
-// بوق تک‌شات ساده برای کلیک یا تست‌های ریز
 function playBeep() {
   playSynthesizedSound("synth-digital");
 }
 
-// شروع چرخه پخش آلارم
 function triggerAlarmPlayback() {
   stopAlarmPlayback();
 
@@ -170,7 +157,6 @@ function triggerAlarmPlayback() {
   }
 }
 
-// متوقف‌سازی کامل صدای زنگ
 function stopAlarmPlayback() {
   if (synthAlarmInterval) {
     clearInterval(synthAlarmInterval);
@@ -187,7 +173,6 @@ function stopAlarmPlayback() {
   }
 }
 
-// باز شدن پاپ‌آپ پایان تایمر
 function showAlarmModal() {
   const isWork = timerMode === "work";
   const titleElem = document.getElementById("alarmTitle");
@@ -210,7 +195,6 @@ function showAlarmModal() {
   triggerAlarmPlayback();
 }
 
-// دکمه‌های بستن و خاتمه آلارم
 function dismissAlarm(shouldSwitchMode = true) {
   stopAlarmPlayback();
   closeModal("alarmModal");
@@ -221,7 +205,6 @@ function dismissAlarm(shouldSwitchMode = true) {
   }
 }
 
-// تغییر زنگ بعدی توسط کاربر
 function changeAlarmSound(val) {
   currentAlarmSetting = val;
   localStorage.setItem("chosen_alarm_sound", val);
@@ -267,7 +250,6 @@ function handleCustomAudioFile(event) {
   reader.readAsDataURL(file);
 }
 
-// تست صدای انتخابی
 function testCurrentAlarmSound() {
   stopAlarmPlayback();
   triggerAlarmPlayback();
@@ -276,9 +258,7 @@ function testCurrentAlarmSound() {
   }, 3000);
 }
 
-/* =============================================================
-   ۴. موتور تایمر تمرکز (Pomodoro / Deep Work)
-   ============================================================= */
+
 let timerTotalSeconds = 25 * 60;
 let timerRemaining = 25 * 60;
 let timerInterval = null;
@@ -364,7 +344,7 @@ function toggleTimer() {
         clearInterval(timerInterval);
         timerInterval = null;
         updateTimerButtonUI();
-        showAlarmModal(); // اجرای بی‌نقص مودال اختصاصی همراه با زنگ
+        showAlarmModal();
       }
     }, 1000);
   }
@@ -400,9 +380,7 @@ function switchTimerMode() {
   resetTimer();
 }
 
-/* =============================================================
-   ۵. موتور مدیریت وظایف (Tasks)
-   ============================================================= */
+
 function filterTasks(type) {
   currentTaskFilter = type;
   ["all", "high", "pending"].forEach((t) => {
@@ -452,7 +430,7 @@ function renderTasks() {
 
     card.innerHTML = `
       <div class="flex items-center gap-2.5 flex-1 overflow-hidden ml-2">
-        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"}">
+        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition shrink-0 ${task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"}">
           ${task.done ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <div class="flex flex-col truncate">
@@ -460,7 +438,7 @@ function renderTasks() {
           ${project ? `<span class="text-[10px] text-[#d0bcff] truncate">${project.title}</span>` : ""}
         </div>
       </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
+      <div class="flex items-center gap-2 shrink-0">
         <span class="text-[9px] px-2 py-0.5 rounded-full font-medium ${badge}">${badgeText}</span>
         <button onclick="deleteTask(${task.id})" class="text-[#8e9198] hover:text-[#ffb4ab] opacity-0 group-hover:opacity-100 transition p-0.5">
           <span class="material-symbols-rounded text-sm">close</span>
@@ -503,9 +481,7 @@ function createTask() {
   titleInput.value = "";
 }
 
-/* =============================================================
-   ۶. موتور پایش عادات (Habit Tracker)
-   ============================================================= */
+
 function renderHabits() {
   const container = document.getElementById("habitsList");
   if (!container) return;
@@ -573,9 +549,7 @@ function createHabit() {
   input.value = "";
 }
 
-/* =============================================================
-   ۷. موتور مدیریت پروژه‌ها (Projects)
-   ============================================================= */
+
 function renderProjects() {
   const container = document.getElementById("projectsList");
   const select = document.getElementById("taskProjectSelect");
@@ -648,9 +622,7 @@ function createProject() {
   catInput.value = "";
 }
 
-/* =============================================================
-   ۸. تایم‌باکسینگ ۲۴ ساعته + بازه‌های دلخواه
-   ============================================================= */
+
 const hours24Full = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0") + ":00");
 
 function switchTimelineTab(tab) {
@@ -847,9 +819,7 @@ function clearTimeline() {
   }
 }
 
-/* =============================================================
-   ۹. نمودار عملکرد و معماری PARA
-   ============================================================= */
+
 function updateParaCounters() {
   const pProj = document.getElementById("paraProjects");
   const pTask = document.getElementById("paraTasks");
@@ -929,9 +899,7 @@ function calculatePerformanceScore() {
   chartInstance.update();
 }
 
-/* =============================================================
-   ۱۰. ابزارهای مودال و ایمپورت/اکسپورت بکاپ
-   ============================================================= */
+
 function openModal(id) {
   const elem = document.getElementById(id);
   if (elem) {
@@ -982,9 +950,7 @@ function importBackup(e) {
   reader.readAsText(file);
 }
 
-/* =============================================================
-   ۱۱. راه‌اندازی اولیه و بارگذاری استیت در صفحه
-   ============================================================= */
+
 document.addEventListener("DOMContentLoaded", () => {
   const focusInput = document.getElementById("dailyFocusInput");
   if (focusInput) focusInput.value = state.dailyFocus || "";

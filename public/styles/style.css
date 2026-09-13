@@ -97,14 +97,12 @@ body {
   background: #44474e;
 }
 
-/* تضمین مخفی ماندن مودال‌ها در صورت وجود کلاس hidden */
 [id$="Modal"].hidden {
   display: none !important;
 }
 [id$="Modal"]:not(.hidden) {
   display: flex !important;
 }
-/* استایل قطعی مودال آلارم با ابعاد مشخص و طراحی لوکس M3 */
 #alarmModal .alarm-card {
   width: 100% !important;
   max-width: 440px !important;
@@ -168,7 +166,6 @@ body {
   font-size: 11px !important;
 }
 
-/* مات کردن و تاریکی پس‌زمینه هنگام باز شدن مودال‌ها */
 #alarmModal,
 [id$="Modal"] {
   background-color: rgba(0, 0, 0, 0.72) !important;

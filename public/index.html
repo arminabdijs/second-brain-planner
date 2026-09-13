@@ -59,9 +59,7 @@
 
     <!-- Layout Container -->
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- ستون اول: ساعت، تایمر، عادت‌ها، PARA (۴ ستون) -->
       <div class="lg:col-span-4 flex flex-col gap-6">
-        <!-- ۱. ویجت ساعت Google Clock -->
         <div class="m3-surface-card p-6 flex flex-col items-center">
           <div class="w-full flex items-center justify-between text-xs text-[#8e9198] mb-3">
             <span class="flex items-center gap-1 font-medium text-[#a8c7fa]">
@@ -97,7 +95,6 @@
           </div>
         </div>
 
-        <!-- ۲. تایمر کار عمیق M3 -->
         <div class="m3-surface-card p-5">
           <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#2d3139]">
             <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
@@ -134,7 +131,6 @@
           </div>
         </div>
 
-        <!-- ۳. ردیاب عادات -->
         <div class="m3-surface-card p-5 flex flex-col flex-1">
           <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#2d3139]">
             <h2 class="text-xs font-bold uppercase tracking-wider text-[#e2e2e6] flex items-center gap-1.5">
@@ -146,7 +142,6 @@
           <div id="habitsList" class="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- ۴. دسته‌بندی معماری PARA -->
         <div class="m3-surface-card p-4">
           <div class="grid grid-cols-2 gap-2 text-xs m3-num-font">
             <div class="p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] flex justify-between items-center">
@@ -169,9 +164,7 @@
         </div>
       </div>
 
-      <!-- ستون دوم: نمودار، پروژه‌ها، تسک‌ها، بلوک‌های ۲۴ ساعته + بازه‌های دلخواه (۸ ستون) -->
       <div class="lg:col-span-8 flex flex-col gap-6">
-        <!-- نمودار پیشرفت ۳۰ روزه -->
         <div class="m3-surface-card p-5">
           <div class="flex justify-between items-center mb-3">
             <div>
@@ -188,9 +181,7 @@
           </div>
         </div>
 
-        <!-- ردیف پروژه‌ها و تسک‌ها -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- پروژه‌ها -->
           <div class="m3-surface-card p-5 flex flex-col">
             <div class="flex justify-between items-center pb-3 mb-3 border-b border-[#2d3139]">
               <h2 class="text-xs font-bold uppercase tracking-wider text-[#d0bcff] flex items-center gap-1.5">
@@ -202,7 +193,6 @@
             <div id="projectsList" class="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
           </div>
 
-          <!-- تسک‌ها -->
           <div class="m3-surface-card p-5 flex flex-col">
             <div class="flex justify-between items-center pb-3 mb-3 border-b border-[#2d3139]">
               <h2 class="text-xs font-bold uppercase tracking-wider text-[#a8c7fa] flex items-center gap-1.5">
@@ -222,7 +212,6 @@
           </div>
         </div>
 
-        <!-- بخش پیشرفته تایم‌باکسینگ (۲۴ ساعته کامل + بازه‌های سفارشی) -->
         <div class="m3-surface-card p-5">
           <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-3 mb-3 border-b border-[#2d3139]">
             <div>
@@ -234,7 +223,6 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <!-- سوئیچر نما -->
               <div class="flex rounded-full bg-[#171a1f] p-0.5 border border-[#2d3139]">
                 <button onclick="switchTimelineTab('grid')" id="tabBtnGrid" class="text-[10px] px-3 py-1 rounded-full bg-[#a8c7fa] text-[#04305c] font-bold transition">شبکه ۲۴ ساعته</button>
                 <button onclick="switchTimelineTab('custom')" id="tabBtnCustom" class="text-[10px] px-3 py-1 rounded-full text-[#8e9198] hover:text-white transition">
@@ -247,21 +235,16 @@
             </div>
           </div>
 
-          <!-- نمای اول: شبکه ۲۴ ساعته کامل (۰۰:۰۰ تا ۲۳:۰۰) -->
           <div id="timelineGridView" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-8 gap-2">
-            <!-- با جاوااسکریپت ۲۴ ساعت پر می‌شود -->
           </div>
 
-          <!-- نمای دوم: لیست بازه‌های زمانی دلخواه واردشده توسط کاربر -->
           <div id="timelineCustomView" class="hidden flex-col gap-2 max-h-72 overflow-y-auto">
-            <!-- با جاوااسکریپت رندر می‌شود -->
           </div>
         </div>
       </div>
     </main>
 
-    <!-- مودال‌ها -->
-    <!-- ۱. تسک جدید -->
+
     <div id="taskModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
@@ -297,7 +280,6 @@
       </div>
     </div>
 
-    <!-- ۲. عادت جدید -->
     <div id="habitModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
@@ -315,7 +297,6 @@
       </div>
     </div>
 
-    <!-- ۳. پروژه جدید -->
     <div id="projectModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
@@ -339,7 +320,6 @@
       </div>
     </div>
 
-    <!-- ۴. ویرایش بلوک ساعت ثابت (شبکه ۲۴ ساعته) -->
     <div id="timeBlockModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
@@ -371,7 +351,6 @@
       </div>
     </div>
 
-    <!-- ۵. مودال ایجاد بازه زمانی دلخواه (Custom Time Span) -->
     <div id="customBlockModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
@@ -412,10 +391,8 @@
       </div>
     </div>
 
-    <!-- مودال اختصاصی پایان تایمر و مدیریت صدای زنگ -->
     <div id="alarmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
       <div class="alarm-card">
-        <!-- آیکون زنگ -->
         <div class="alarm-icon-box">
           <span class="material-symbols-rounded text-3xl filled">notifications_active</span>
         </div>
@@ -423,7 +400,6 @@
         <h3 id="alarmTitle" class="text-base font-bold text-white mb-1">زمان تمرکز به پایان رسید!</h3>
         <p id="alarmSubtitle" class="text-xs text-[#8e9198] mb-5 max-w-xs leading-relaxed">خسته نباشید! وقت آن است که چند دقیقه استراحت کنید.</p>
 
-        <!-- دکمه‌های کنترل با نسبت متقارن و استاندارد -->
         <div class="flex items-center gap-2 w-full mb-4" dir="rtl">
           <button onclick="dismissAlarm(true)" class="alarm-action-btn flex-1 bg-[#a8c7fa] text-[#04305c] hover:bg-[#c2e7ff]">
             <span class="material-symbols-rounded text-base filled">notifications_off</span>
@@ -432,7 +408,6 @@
           <button onclick="dismissAlarm(false)" class="alarm-action-btn px-5 bg-[#272a31] text-[#c4c7c5] hover:bg-[#333a47] border border-[#323742]">بستن</button>
         </div>
 
-        <!-- باکس تنظیمات زنگ بعدی -->
         <div class="alarm-settings-box">
           <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-[#242830]">
             <span class="text-xs font-bold text-[#ffd99f] flex items-center gap-1.5">
@@ -450,7 +425,7 @@
                 <option value="synth-zen">🧘 ملایم ذن (چایمز)</option>
                 <option value="custom-file">📁 فایل صوتی اختصاصی از سیستم...</option>
               </select>
-              <button onclick="testCurrentAlarmSound()" class="w-9 h-9 rounded-xl bg-[#272a31] hover:bg-[#333a47] text-[#a8c7fa] flex items-center justify-center border border-[#323742] transition flex-shrink-0" title="تست صدا">
+              <button onclick="testCurrentAlarmSound()" class="w-9 h-9 rounded-xl bg-[#272a31] hover:bg-[#333a47] text-[#a8c7fa] flex items-center justify-center border border-[#323742] transition shrink-0" title="تست صدا">
                 <span class="material-symbols-rounded text-lg">volume_up</span>
               </button>
             </div>
