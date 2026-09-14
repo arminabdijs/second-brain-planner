@@ -165,6 +165,7 @@
       </div>
 
       <div class="lg:col-span-8 flex flex-col gap-6">
+        <!-- Performance Chart Container -->
         <div class="m3-surface-card p-5">
           <div class="flex justify-between items-center mb-3">
             <div>
@@ -176,7 +177,8 @@
             </div>
             <span class="text-[10px] text-[#a8c7fa] bg-[#004a77] px-2.5 py-0.5 rounded-full font-medium">LIVE GRAPH</span>
           </div>
-          <div class="h-44 w-full">
+          <!-- صریح کردن جهت LTR ظرف برای جلوگیری از پرش و معکوس شدن برچسب‌ها -->
+          <div class="h-44 w-full" dir="ltr" style="direction: ltr; text-align: left">
             <canvas id="performanceChart"></canvas>
           </div>
         </div>
@@ -235,16 +237,14 @@
             </div>
           </div>
 
-          <div id="timelineGridView" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-8 gap-2">
-          </div>
+          <div id="timelineGridView" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-8 gap-2"></div>
 
-          <div id="timelineCustomView" class="hidden flex-col gap-2 max-h-72 overflow-y-auto">
-          </div>
+          <div id="timelineCustomView" class="hidden flex-col gap-2 max-h-72 overflow-y-auto"></div>
         </div>
       </div>
     </main>
 
-
+    <!-- Modals -->
     <div id="taskModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
       <div class="bg-[#1d2026] border border-[#2d3139] rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">

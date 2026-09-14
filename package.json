@@ -1,14 +1,14 @@
 {
-  "name": "coffee__shop",
+  "name": "second-brain-planner",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/arminabdijs/Coffee__Shop#readme",
+  "homepage": "https://github.com/arminabdijs/second-brain-planner#readme",
   "bugs": {
-    "url": "https://github.com/arminabdijs/Coffee__Shop/issues"
+    "url": "https://github.com/arminabdijs/second-brain-planner/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arminabdijs/Coffee__Shop.git"
+    "url": "git+https://github.com/arminabdijs/second-brain-planner.git"
   },
   "license": "ISC",
   "author": "",

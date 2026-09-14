@@ -1,13 +1,84 @@
-
+/* =============================================================
+   ۱. مدیریت استیت (State Engine) و تقویم رسمی ایران
+   ============================================================= */
 const STORAGE_KEY = "google_m3_second_brain_v7_24h";
 
+function getTehranShamsiDateKey(offsetDays = 0) {
+  const targetDate = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-latn", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(targetDate);
+  const year = parts.find((p) => p.type === "year").value;
+  const month = parts.find((p) => p.type === "month").value;
+  const day = parts.find((p) => p.type === "day").value;
+  return `${year}/${month}/${day}`;
+}
+
+function getDetailedShamsiDate(offsetDays = 0) {
+  const targetDate = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+    timeZone: "Asia/Tehran",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return formatter.format(targetDate);
+}
+
+// تولید برچسب‌های متراکم دوخطی برای تمام ۳۰ روز بدون حذف هیچ روزی
+function getPast30DaysCompactLabels() {
+  const labels = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const targetDate = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+
+    // عدد روز شمسی
+    const dayNum = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-latn", {
+      timeZone: "Asia/Tehran",
+      day: "numeric",
+    }).format(targetDate);
+
+    // حرف نشانه روز هفته (ش، ی، د، س، چ، پ، ج)
+    const weekLetter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      timeZone: "Asia/Tehran",
+      weekday: "narrow",
+    }).format(targetDate);
+
+    // ارسال به صورت آرایه ۲ عنصری: خط اول عدد روز، خط دوم حرف روز هفته
+    labels.push([dayNum, weekLetter]);
+  }
+  return labels;
+}
+
+const DEFAULT_ROUTINE_SPANS = [
+  { id: 101, start: "00:00", end: "06:15", title: "خواب عمیق و ریکاوری", type: "fitness", done: false },
+  { id: 102, start: "06:15", end: "06:45", title: "بیداری، کشش و صبحانه", type: "routine", done: false },
+  { id: 103, start: "06:45", end: "07:45", title: "زبان انگلیسی", type: "deep", done: false },
+  { id: 104, start: "07:45", end: "08:00", title: "استراحت و چای", type: "fitness", done: false },
+  { id: 105, start: "08:00", end: "10:30", title: "توسعه عمیق جاوااسکریپت", type: "deep", done: false },
+  { id: 106, start: "10:30", end: "11:00", title: "پیاده‌روی و استراحت", type: "fitness", done: false },
+  { id: 107, start: "11:00", end: "13:00", title: "تمرین و حل چالش‌های الگوریتم", type: "deep", done: false },
+  { id: 108, start: "13:00", end: "14:30", title: "ناهار و استراحت نیمروزی", type: "routine", done: false },
+  { id: 109, start: "14:30", end: "17:00", title: "پروژه‌های اجرایی و توسعه", type: "deep", done: false },
+  { id: 110, start: "17:00", end: "18:00", title: "ورزش و فعالیت بدنی", type: "fitness", done: false },
+  { id: 111, start: "18:00", end: "20:30", title: "مطالعه آزاد و بازبینی کدها", type: "deep", done: false },
+  { id: 112, start: "20:30", end: "23:00", title: "شام، خانواده و روتین شبانگاهی", type: "routine", done: false },
+];
+
 const defaultState = {
+  activeDate: getTehranShamsiDateKey(),
   dailyFocus: "",
   tasks: [],
   habits: [],
   projects: [],
   timeBlocks: {},
-  customSpans: [],
+  customSpans: [...DEFAULT_ROUTINE_SPANS],
+  daysArchive: {},
   history: {},
 };
 
@@ -16,8 +87,12 @@ function loadState() {
     const item = localStorage.getItem(STORAGE_KEY);
     if (!item) return JSON.parse(JSON.stringify(defaultState));
     const parsed = JSON.parse(item);
+    if (!parsed.tasks) parsed.tasks = [];
+    if (!parsed.habits) parsed.habits = [];
+    if (!parsed.projects) parsed.projects = [];
     if (!parsed.customSpans) parsed.customSpans = [];
     if (!parsed.timeBlocks) parsed.timeBlocks = {};
+    if (!parsed.daysArchive) parsed.daysArchive = {};
     if (!parsed.history) parsed.history = {};
     return parsed;
   } catch (e) {
@@ -29,7 +104,7 @@ let state = loadState();
 let currentTaskFilter = "all";
 let editingHour = null;
 let chartInstance = null;
-let activeTimelineTab = "grid";
+let activeTimelineTab = "custom";
 
 let alarmAudioElement = null;
 let synthAlarmInterval = null;
@@ -43,30 +118,140 @@ function saveState() {
     updateParaCounters();
     calculatePerformanceScore();
   } catch (e) {
-    console.error("خطا در ذخیره‌سازی استیت:", e);
+    console.error("Save error:", e);
   }
 }
 
-const weekDays = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+/* =============================================================
+   ۲. مدیریت عبور از ۲۴ ساعت و روتین‌ها
+   ============================================================= */
+function ensureSpansAvailable() {
+  if (!state.customSpans || state.customSpans.length === 0) {
+    let foundInArchive = false;
+    if (state.daysArchive) {
+      const dates = Object.keys(state.daysArchive);
+      for (let i = dates.length - 1; i >= 0; i--) {
+        const d = state.daysArchive[dates[i]];
+        if (d && d.customSpans && d.customSpans.length > 0) {
+          state.customSpans = d.customSpans.map((s) => ({ ...s, done: false }));
+          foundInArchive = true;
+          break;
+        }
+      }
+    }
+    if (!foundInArchive) {
+      state.customSpans = JSON.parse(JSON.stringify(DEFAULT_ROUTINE_SPANS));
+    }
+    saveState();
+  }
+}
+
+function checkDayRollover() {
+  const todayTehran = getTehranShamsiDateKey();
+
+  if (!state.activeDate || state.activeDate !== todayTehran) {
+    const prevDate = state.activeDate || getTehranShamsiDateKey(-1);
+
+    state.daysArchive[prevDate] = {
+      dailyFocus: state.dailyFocus,
+      timeBlocks: { ...state.timeBlocks },
+      customSpans: state.customSpans.map((s) => ({ ...s })),
+      tasks: state.tasks.map((t) => ({ ...t })),
+      habits: state.habits.map((h) => ({ ...h })),
+    };
+
+    const hTotal = state.habits.length;
+    const hDone = state.habits.filter((h) => h.doneToday).length;
+    const hScore = hTotal ? (hDone / hTotal) * 40 : 0;
+
+    const tTotal = state.tasks.length;
+    const tDone = state.tasks.filter((t) => t.done).length;
+    const tScore = tTotal ? (tDone / tTotal) * 40 : 0;
+
+    const spanDone = state.customSpans.filter((s) => s.done).length;
+    const blockTotal = Object.keys(state.timeBlocks).length;
+    const bScore = Math.min(20, ((spanDone + blockTotal) / 5) * 20);
+
+    state.history[prevDate] = Math.round(hScore + tScore + bScore);
+
+    state.habits.forEach((h) => {
+      if (!h.doneToday) h.streak = 0;
+      h.doneToday = false;
+    });
+
+    state.tasks.forEach((t) => {
+      t.done = false;
+    });
+
+    state.customSpans.forEach((s) => {
+      s.done = false;
+    });
+
+    state.timeBlocks = {};
+    state.dailyFocus = "";
+    state.activeDate = todayTehran;
+    state.history[todayTehran] = 0;
+
+    saveState();
+
+    const focusInput = document.getElementById("dailyFocusInput");
+    if (focusInput) focusInput.value = "";
+
+    renderTasks();
+    renderHabits();
+    renderTimeline();
+    renderProjects();
+    initChart();
+  }
+}
+setInterval(checkDayRollover, 10000);
+
+/* =============================================================
+   ۳. ساعت زنده سیستم
+   ============================================================= */
+const persianWeekDays = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
 
 function updateLiveClock() {
   const now = new Date();
-  document.getElementById("clockHours").textContent = String(now.getHours()).padStart(2, "0");
-  document.getElementById("clockMinutes").textContent = String(now.getMinutes()).padStart(2, "0");
-  document.getElementById("clockSeconds").textContent = String(now.getSeconds()).padStart(2, "0");
-  document.getElementById("dayNameDisplay").textContent = weekDays[now.getDay()];
+  const tehranTimeStr = now.toLocaleTimeString("en-GB", {
+    timeZone: "Asia/Tehran",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
-  const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-  document.getElementById("dateDisplay").textContent = now.toLocaleDateString("fa-IR", options);
+  const [hours, minutes, seconds] = tehranTimeStr.split(":");
+  const hElem = document.getElementById("clockHours");
+  const mElem = document.getElementById("clockMinutes");
+  const sElem = document.getElementById("clockSeconds");
+  const dElem = document.getElementById("dayNameDisplay");
+  const dateElem = document.getElementById("dateDisplay");
+
+  if (hElem) hElem.textContent = hours;
+  if (mElem) mElem.textContent = minutes;
+  if (sElem) sElem.textContent = seconds;
+
+  if (dElem) {
+    const tehranDayIndex = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tehran" })).getDay();
+    dElem.textContent = persianWeekDays[tehranDayIndex];
+  }
+
+  if (dateElem) {
+    const dateOptions = { timeZone: "Asia/Tehran", year: "numeric", month: "long", day: "numeric", weekday: "long" };
+    dateElem.textContent = new Intl.DateTimeFormat("fa-IR-u-ca-persian", dateOptions).format(now);
+  }
 }
 setInterval(updateLiveClock, 1000);
-updateLiveClock();
 
 function updateDailyFocus(val) {
   state.dailyFocus = val;
   saveState();
 }
 
+/* =============================================================
+   ۴. سیستم صوتی و آلارم
+   ============================================================= */
 let sharedAudioCtx = null;
 function getAudioContext() {
   if (!sharedAudioCtx) {
@@ -106,8 +291,8 @@ function playSynthesizedSound(type) {
         osc.frequency.setValueAtTime(freq, now + i * 0.18);
         gain.gain.setValueAtTime(0.15, now + i * 0.18);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.18 + 1.2);
-        osc.start(now + i * 0.18);
-        osc.stop(now + i * 0.18 + 1.3);
+        osc.start(now + i * 0.1);
+        osc.stop(now + i * 0.1 + 0.19);
       });
     } else {
       const osc = ctx.createOscillator();
@@ -122,7 +307,7 @@ function playSynthesizedSound(type) {
       osc.stop(now + 1.5);
     }
   } catch (e) {
-    console.warn("خطای خروجی صدا:", e);
+    console.warn("Audio error:", e);
   }
 }
 
@@ -142,10 +327,7 @@ function triggerAlarmPlayback() {
     try {
       alarmAudioElement = new Audio(customAudioDataUrl);
       alarmAudioElement.loop = true;
-      alarmAudioElement.play().catch((err) => {
-        console.warn("پخش فایل به دلیل محدودیت مرورگر مسدود شد؛ سوئیچ به سینت‌سایزر:", err);
-        playSynthesizedSound("synth-bell");
-      });
+      alarmAudioElement.play().catch(() => playSynthesizedSound("synth-bell"));
     } catch (err) {
       playSynthesizedSound("synth-bell");
     }
@@ -182,7 +364,9 @@ function showAlarmModal() {
     titleElem.textContent = isWork ? "زمان تمرکز به پایان رسید!" : "استراحت پایان یافت!";
   }
   if (subtitleElem) {
-    subtitleElem.textContent = isWork ? "خسته نباشید! یک بازه کاری را با موفقیت تمام کردید. زمان استراحت است." : "استراحت شما تکمیل شد. آماده برای شروع بازه تمرکز عمیق جدید شوید.";
+    subtitleElem.textContent = isWork
+      ? "یک بازه کاری را به پایان رساندید. وقت استراحت است."
+      : "استراحت پایان یافت. آماده شروع تمرکز عمیق شوید.";
   }
 
   const select = document.getElementById("alarmSoundSelect");
@@ -218,9 +402,7 @@ function toggleCustomUploadBox(val) {
     box.classList.remove("hidden");
     const savedName = localStorage.getItem("custom_alarm_filename");
     const fileLabel = document.getElementById("customFileName");
-    if (savedName && fileLabel) {
-      fileLabel.textContent = `فایل فعال: ${savedName}`;
-    }
+    if (savedName && fileLabel) fileLabel.textContent = `فایل فعال: ${savedName}`;
   } else {
     box.classList.add("hidden");
   }
@@ -233,19 +415,14 @@ function handleCustomAudioFile(event) {
   const reader = new FileReader();
   reader.onload = function (e) {
     customAudioDataUrl = e.target.result;
+    localStorage.setItem("custom_alarm_data_url", customAudioDataUrl);
+    localStorage.setItem("custom_alarm_filename", file.name);
 
-    try {
-      localStorage.setItem("custom_alarm_data_url", customAudioDataUrl);
-      localStorage.setItem("custom_alarm_filename", file.name);
+    const fileLabel = document.getElementById("customFileName");
+    if (fileLabel) fileLabel.textContent = `فایل فعال: ${file.name}`;
 
-      const fileLabel = document.getElementById("customFileName");
-      if (fileLabel) fileLabel.textContent = `ذخیره دائمی شد: ${file.name}`;
-
-      currentAlarmSetting = "custom-file";
-      localStorage.setItem("chosen_alarm_sound", "custom-file");
-    } catch (err) {
-      alert("حجم فایل برای ذخیره خودکار زیاد است، لطفاً یک فایل کم‌حجم‌تر انتخاب کنید.");
-    }
+    currentAlarmSetting = "custom-file";
+    localStorage.setItem("chosen_alarm_sound", "custom-file");
   };
   reader.readAsDataURL(file);
 }
@@ -253,12 +430,12 @@ function handleCustomAudioFile(event) {
 function testCurrentAlarmSound() {
   stopAlarmPlayback();
   triggerAlarmPlayback();
-  testSoundTimeout = setTimeout(() => {
-    stopAlarmPlayback();
-  }, 3000);
+  testSoundTimeout = setTimeout(stopAlarmPlayback, 3000);
 }
 
-
+/* =============================================================
+   ۵. موتور تایمر تمرکز عمیق
+   ============================================================= */
 let timerTotalSeconds = 25 * 60;
 let timerRemaining = 25 * 60;
 let timerInterval = null;
@@ -270,10 +447,10 @@ function renderTimerNumbers() {
   const inputMin = document.getElementById("inputTimerMin");
   const inputSec = document.getElementById("inputTimerSec");
 
-  if (document.activeElement !== inputMin) {
+  if (inputMin && document.activeElement !== inputMin) {
     inputMin.value = String(mins).padStart(2, "0");
   }
-  if (document.activeElement !== inputSec) {
+  if (inputSec && document.activeElement !== inputSec) {
     inputSec.value = String(secs).padStart(2, "0");
   }
 }
@@ -309,12 +486,16 @@ function onTimerSecBlur(input) {
 }
 
 function syncTimerFromInputs() {
-  const m = parseInt(document.getElementById("inputTimerMin").value) || 0;
-  const s = parseInt(document.getElementById("inputTimerSec").value) || 0;
+  const minElem = document.getElementById("inputTimerMin");
+  const secElem = document.getElementById("inputTimerSec");
+  const m = parseInt(minElem ? minElem.value : 25) || 0;
+  const s = parseInt(secElem ? secElem.value : 0) || 0;
   const total = m * 60 + s;
   timerTotalSeconds = total > 0 ? total : 60;
   timerRemaining = timerTotalSeconds;
-  document.getElementById("timerBadge").textContent = `${Math.round(timerTotalSeconds / 60)} دقیقه`;
+
+  const badge = document.getElementById("timerBadge");
+  if (badge) badge.textContent = `${Math.round(timerTotalSeconds / 60)} دقیقه`;
   renderTimerNumbers();
 }
 
@@ -366,21 +547,28 @@ function switchTimerMode() {
     clearInterval(timerInterval);
     timerInterval = null;
   }
+  const badge = document.getElementById("timerBadge");
   if (timerMode === "work") {
     timerMode = "break";
     timerTotalSeconds = 5 * 60;
-    document.getElementById("timerBadge").textContent = "استراحت (۵ دقیقه)";
-    document.getElementById("timerBadge").className = "text-[10px] px-2.5 py-0.5 rounded-full bg-[#173822] text-[#85e4a0] font-medium";
+    if (badge) {
+      badge.textContent = "استراحت (۵ دقیقه)";
+      badge.className = "text-[10px] px-2.5 py-0.5 rounded-full bg-[#173822] text-[#85e4a0] font-medium";
+    }
   } else {
     timerMode = "work";
     timerTotalSeconds = 25 * 60;
-    document.getElementById("timerBadge").textContent = "تمرکز (۲۵ دقیقه)";
-    document.getElementById("timerBadge").className = "text-[10px] px-2.5 py-0.5 rounded-full bg-[#0842a0] text-[#d3e3fd] font-medium";
+    if (badge) {
+      badge.textContent = "تمرکز (۲۵ دقیقه)";
+      badge.className = "text-[10px] px-2.5 py-0.5 rounded-full bg-[#0842a0] text-[#d3e3fd] font-medium";
+    }
   }
   resetTimer();
 }
 
-
+/* =============================================================
+   ۶. وظایف روزانه (Tasks)
+   ============================================================= */
 function filterTasks(type) {
   currentTaskFilter = type;
   ["all", "high", "pending"].forEach((t) => {
@@ -406,7 +594,8 @@ function renderTasks() {
   else if (currentTaskFilter === "pending") list = state.tasks.filter((t) => !t.done);
 
   const doneCount = state.tasks.filter((t) => t.done).length;
-  document.getElementById("tasksCounter").textContent = `${doneCount} / ${state.tasks.length}`;
+  const counterElem = document.getElementById("tasksCounter");
+  if (counterElem) counterElem.textContent = `${doneCount} / ${state.tasks.length}`;
 
   if (list.length === 0) {
     container.innerHTML = `<div class="text-center py-6 text-xs text-[#8e9198]">تسکی در این بخش وجود ندارد</div>`;
@@ -430,7 +619,9 @@ function renderTasks() {
 
     card.innerHTML = `
       <div class="flex items-center gap-2.5 flex-1 overflow-hidden ml-2">
-        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition shrink-0 ${task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"}">
+        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${
+          task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"
+        }">
           ${task.done ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <div class="flex flex-col truncate">
@@ -438,7 +629,7 @@ function renderTasks() {
           ${project ? `<span class="text-[10px] text-[#d0bcff] truncate">${project.title}</span>` : ""}
         </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-2 flex-shrink-0">
         <span class="text-[9px] px-2 py-0.5 rounded-full font-medium ${badge}">${badgeText}</span>
         <button onclick="deleteTask(${task.id})" class="text-[#8e9198] hover:text-[#ffb4ab] opacity-0 group-hover:opacity-100 transition p-0.5">
           <span class="material-symbols-rounded text-sm">close</span>
@@ -481,7 +672,9 @@ function createTask() {
   titleInput.value = "";
 }
 
-
+/* =============================================================
+   ۷. پایش عادات روزانه (Habits Tracker)
+   ============================================================= */
 function renderHabits() {
   const container = document.getElementById("habitsList");
   if (!container) return;
@@ -490,7 +683,8 @@ function renderHabits() {
   const total = state.habits.length;
   const done = state.habits.filter((h) => h.doneToday).length;
   const score = total ? Math.round((done / total) * 100) : 0;
-  document.getElementById("habitsScore").textContent = `${score}%`;
+  const scoreBadge = document.getElementById("habitsScore");
+  if (scoreBadge) scoreBadge.textContent = `${score}%`;
 
   if (total === 0) {
     container.innerHTML = `<div class="text-center py-6 text-xs text-[#8e9198]">عادت فعالی تعریف نشده است</div>`;
@@ -502,14 +696,16 @@ function renderHabits() {
     card.className = "flex items-center justify-between p-2.5 rounded-2xl bg-[#171a1f] border border-[#2d3139] group";
     card.innerHTML = `
       <div class="flex items-center gap-2.5">
-        <button onclick="toggleHabit(${h.id})" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${h.doneToday ? "bg-[#6dd58c] border-[#6dd58c] text-[#0a3818]" : "border-[#44474e] hover:border-[#6dd58c]"}">
+        <button onclick="toggleHabit(${h.id})" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${
+          h.doneToday ? "bg-[#6dd58c] border-[#6dd58c] text-[#0a3818]" : "border-[#44474e] hover:border-[#6dd58c]"
+        }">
           ${h.doneToday ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <span class="text-xs ${h.doneToday ? "text-[#8e9198] line-through" : "text-[#e2e2e6]"}">${h.title}</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="text-[10px] m3-num-font text-[#ffd99f] bg-[#3b2d00] px-2 py-0.5 rounded-full flex items-center gap-0.5">
-          🔥 ${h.streak}d
+          🔥 ${h.streak || 0} روز
         </span>
         <button onclick="deleteHabit(${h.id})" class="text-[#8e9198] hover:text-[#ffb4ab] opacity-0 group-hover:opacity-100 transition p-0.5">
           <span class="material-symbols-rounded text-sm">close</span>
@@ -524,8 +720,11 @@ function toggleHabit(id) {
   const habit = state.habits.find((h) => h.id === id);
   if (habit) {
     habit.doneToday = !habit.doneToday;
-    if (habit.doneToday) habit.streak += 1;
-    else habit.streak = Math.max(0, habit.streak - 1);
+    if (habit.doneToday) {
+      habit.streak = (habit.streak || 0) + 1;
+    } else {
+      habit.streak = Math.max(0, (habit.streak || 1) - 1);
+    }
     saveState();
     renderHabits();
   }
@@ -542,14 +741,16 @@ function createHabit() {
   const title = input.value.trim();
   if (!title) return;
 
-  state.habits.push({ id: Date.now(), title, streak: 1, doneToday: false });
+  state.habits.push({ id: Date.now(), title, streak: 0, doneToday: false });
   saveState();
   renderHabits();
   closeModal("habitModal");
   input.value = "";
 }
 
-
+/* =============================================================
+   ۸. مدیریت پروژه‌ها (Projects)
+   ============================================================= */
 function renderProjects() {
   const container = document.getElementById("projectsList");
   const select = document.getElementById("taskProjectSelect");
@@ -558,7 +759,8 @@ function renderProjects() {
   container.innerHTML = "";
   select.innerHTML = '<option value="">مستقل (بدون پروژه)</option>';
 
-  document.getElementById("projectsCount").textContent = `${state.projects.length} پروژه`;
+  const pCount = document.getElementById("projectsCount");
+  if (pCount) pCount.textContent = `${state.projects.length} پروژه`;
 
   if (state.projects.length === 0) {
     container.innerHTML = `<div class="text-center py-6 text-xs text-[#8e9198]">پروژه‌ای ثبت نشده است</div>`;
@@ -622,7 +824,9 @@ function createProject() {
   catInput.value = "";
 }
 
-
+/* =============================================================
+   ۹. بلوک‌بندی ۲۴ ساعته و بازه‌های ماندگار روزانه
+   ============================================================= */
 const hours24Full = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0") + ":00");
 
 function switchTimelineTab(tab) {
@@ -652,13 +856,21 @@ function switchTimelineTab(tab) {
 function renderTimeline() {
   render24HourGrid();
   renderCustomSpans();
+  switchTimelineTab(activeTimelineTab);
 }
 
 function render24HourGrid() {
   const container = document.getElementById("timelineGridView");
   if (!container) return;
   container.innerHTML = "";
-  const currentHourStr = String(new Date().getHours()).padStart(2, "0") + ":00";
+
+  const now = new Date();
+  const tehranHour = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Tehran",
+    hour: "2-digit",
+    hour12: false,
+  }).format(now);
+  const currentHourStr = String(tehranHour).padStart(2, "0") + ":00";
 
   hours24Full.forEach((hour) => {
     const item = state.timeBlocks[hour];
@@ -700,7 +912,7 @@ function renderCustomSpans() {
     container.innerHTML = `
       <div class="text-center py-8 text-xs text-[#8e9198] flex flex-col items-center gap-2">
         <span class="material-symbols-rounded text-2xl">more_time</span>
-        <span>هیچ بازه زمانی دلخواهی ثبت نشده است. دکمه «+ بازه دلخواه» را در بالای صفحه بزنید.</span>
+        <span>هیچ بازه زمانی دلخواهی ثبت نشده است. دکمه «+ بازه دلخواه» را بزنید.</span>
       </div>
     `;
     return;
@@ -723,14 +935,22 @@ function renderCustomSpans() {
     }
 
     const item = document.createElement("div");
-    item.className = "flex items-center justify-between p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] hover:border-[#44474e] transition group";
+    item.className = `flex items-center justify-between p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] hover:border-[#44474e] transition group ${
+      span.done ? "opacity-60" : ""
+    }`;
+
     item.innerHTML = `
       <div class="flex items-center gap-3">
+        <button onclick="toggleCustomSpanDone(${span.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${
+          span.done ? "bg-[#ffd99f] border-[#ffd99f] text-[#3b2d00]" : "border-[#44474e] hover:border-[#ffd99f]"
+        }">
+          ${span.done ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
+        </button>
         <div class="font-mono text-xs text-[#a8c7fa] bg-[#111318] px-2.5 py-1 rounded-xl border border-[#2d3139]" dir="ltr">
           ${span.start} - ${span.end}
         </div>
         <div class="flex flex-col">
-          <span class="text-xs font-bold text-[#e2e2e6]">${span.title}</span>
+          <span class="text-xs font-bold ${span.done ? "line-through text-[#8e9198]" : "text-[#e2e2e6]"}">${span.title}</span>
           <span class="text-[9px] text-[#8e9198]">${typeName}</span>
         </div>
       </div>
@@ -745,9 +965,19 @@ function renderCustomSpans() {
   });
 }
 
+function toggleCustomSpanDone(id) {
+  const s = state.customSpans.find((item) => item.id === id);
+  if (s) {
+    s.done = !s.done;
+    saveState();
+    renderCustomSpans();
+  }
+}
+
 function openBlockModal(hour) {
   editingHour = hour;
-  document.getElementById("timeBlockTitle").textContent = `برنامه‌ریزی ساعت ${hour}`;
+  const titleElem = document.getElementById("timeBlockTitle");
+  if (titleElem) titleElem.textContent = `برنامه‌ریزی ساعت ${hour}`;
   const cur = state.timeBlocks[hour];
   document.getElementById("timeBlockInput").value = cur ? cur.title : "";
   document.getElementById("timeBlockType").value = cur ? cur.type : "deep";
@@ -795,6 +1025,7 @@ function saveCustomTimeSpan() {
     end,
     title,
     type,
+    done: false,
   });
 
   saveState();
@@ -811,7 +1042,7 @@ function deleteCustomSpan(id) {
 }
 
 function clearTimeline() {
-  if (confirm("تمام بلوک‌های ساعتی و بازه‌های دلخواه امروز پاکسازی شوند؟")) {
+  if (confirm("تمام بلوک‌های ساعتی و بازه‌های دلخواه پاکسازی شوند؟")) {
     state.timeBlocks = {};
     state.customSpans = [];
     saveState();
@@ -819,7 +1050,9 @@ function clearTimeline() {
   }
 }
 
-
+/* =============================================================
+   ۱۰. نمودار پیوستگی ۳۰ روزه با حضور کامل تک‌تک روزها بدون قیچی شدن
+   ============================================================= */
 function updateParaCounters() {
   const pProj = document.getElementById("paraProjects");
   const pTask = document.getElementById("paraTasks");
@@ -835,35 +1068,129 @@ function updateParaCounters() {
 function initChart() {
   const canvas = document.getElementById("performanceChart");
   if (!canvas) return;
+
   const ctx = canvas.getContext("2d");
-  const labels = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 160);
+  gradient.addColorStop(0, "rgba(168, 199, 250, 0.32)");
+  gradient.addColorStop(0.6, "rgba(168, 199, 250, 0.05)");
+  gradient.addColorStop(1, "rgba(168, 199, 250, 0)");
+
+  // برچسب‌های متراکم دو سطحی برای کل ۳۰ روز
+  const compactLabels = getPast30DaysCompactLabels();
+
+  const fullDateTooltips = [];
+  for (let i = 29; i >= 0; i--) {
+    fullDateTooltips.push(getDetailedShamsiDate(-i));
+  }
 
   chartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels,
+      labels: compactLabels,
       datasets: [
         {
-          label: "امتیاز عملکرد",
+          label: "Performance",
           data: Array(30).fill(0),
           borderColor: "#a8c7fa",
-          backgroundColor: "rgba(168, 199, 250, 0.08)",
-          borderWidth: 2,
+          borderWidth: 2.2,
+          backgroundColor: gradient,
           fill: true,
           tension: 0.35,
-          pointBackgroundColor: "#04305c",
-          pointBorderColor: "#a8c7fa",
-          pointRadius: 3,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointBackgroundColor: "#a8c7fa",
+          pointHoverBackgroundColor: "#ffffff",
+          pointBorderColor: "#04305c",
+          pointHoverBorderColor: "#a8c7fa",
+          pointBorderWidth: 2,
+          pointHoverBorderWidth: 2.5,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      layout: {
+        padding: {
+          right: 12,
+          left: 4,
+          top: 10,
+          bottom: 2,
+        },
+      },
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1e222b",
+          titleColor: "#ffd99f",
+          bodyColor: "#e2e2e6",
+          borderColor: "#323742",
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 14,
+          displayColors: false,
+          rtl: true,
+          titleFont: { family: "Vazirmatn", size: 12, weight: "bold" },
+          bodyFont: { family: "Vazirmatn", size: 11 },
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              return `📅 ${fullDateTooltips[idx]}`;
+            },
+            label: (item) => `⚡ بازدهی و عملکرد: ${item.raw}٪`,
+          },
+        },
+      },
       scales: {
-        x: { grid: { color: "rgba(255, 255, 255, 0.02)" }, ticks: { color: "#8e9198", font: { family: "Vazirmatn", size: 9 } } },
-        y: { grid: { color: "rgba(255, 255, 255, 0.04)" }, ticks: { color: "#8e9198", font: { family: "Vazirmatn", size: 9 } }, min: 0, max: 100 },
+        x: {
+          grid: {
+            display: false,
+          },
+          border: {
+            display: true,
+            color: "rgba(255, 255, 255, 0.08)",
+          },
+          ticks: {
+            // رنگ‌آمیزی متمایز روز امروز در انتهای محور
+            color: function (context) {
+              return context.index === 29 ? "#ffd99f" : "#8e9198";
+            },
+            font: {
+              family: "Roboto Flex, Vazirmatn, sans-serif",
+              size: 8.5,
+              weight: function (context) {
+                return context.index === 29 ? "bold" : "normal";
+              },
+              lineHeight: 1.15,
+            },
+            maxRotation: 0,
+            autoSkip: false, // اجبار به نمایش کامل تمام ۳۰ ستون بدون جا انداختن هیچ روزی
+            padding: 4,
+          },
+        },
+        y: {
+          position: "left",
+          min: 0,
+          max: 100,
+          border: { display: false, dash: [4, 4] },
+          grid: { color: "rgba(255, 255, 255, 0.03)" },
+          ticks: {
+            stepSize: 25,
+            color: "#686c75",
+            font: { family: "Roboto Flex, sans-serif", size: 10 },
+            padding: 8,
+            callback: (val) => val + "%",
+          },
+        },
       },
     },
   });
@@ -880,26 +1207,29 @@ function calculatePerformanceScore() {
   const tDone = state.tasks.filter((t) => t.done).length;
   const tScore = tCount ? (tDone / tCount) * 40 : 0;
 
-  const totalBlocks = Object.keys(state.timeBlocks).length + state.customSpans.length;
-  const bScore = Math.min(20, (totalBlocks / 5) * 20);
+  const spanDone = state.customSpans.filter((s) => s.done).length;
+  const blockTotal = Object.keys(state.timeBlocks).length;
+  const totalCovered = spanDone + blockTotal;
 
-  const total = Math.round(hScore + tScore + bScore);
-  const key = new Date().toISOString().slice(0, 10);
-  state.history[key] = total;
+  const bScore = Math.min(20, (totalCovered / 5) * 20);
+
+  const todayScore = Math.round(hScore + tScore + bScore);
+  const todayKey = state.activeDate;
+  state.history[todayKey] = todayScore;
 
   const historyData = [];
   for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const k = d.toISOString().slice(0, 10);
-    historyData.push(state.history[k] || (i === 0 ? total : 0));
+    const k = getTehranShamsiDateKey(-i);
+    historyData.push(state.history[k] || (k === todayKey ? todayScore : 0));
   }
 
   chartInstance.data.datasets[0].data = historyData;
   chartInstance.update();
 }
 
-
+/* =============================================================
+   ۱۱. مودال‌ها و بکاپ
+   ============================================================= */
 function openModal(id) {
   const elem = document.getElementById(id);
   if (elem) {
@@ -921,7 +1251,7 @@ function exportBackup() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `google_m3_second_brain_${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `second_brain_backup_${state.activeDate.replace(/\//g, "-")}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -935,23 +1265,26 @@ function importBackup(e) {
       const parsed = JSON.parse(event.target.result);
       if (parsed && Array.isArray(parsed.tasks) && Array.isArray(parsed.habits)) {
         state = parsed;
-        if (!state.customSpans) state.customSpans = [];
-        if (!state.timeBlocks) state.timeBlocks = {};
-        if (!state.history) state.history = {};
         saveState();
         location.reload();
       } else {
-        alert("فرمت فایل بکاپ معتبر نیست.");
+        alert("فرمت فایل معتبر نیست.");
       }
     } catch (err) {
-      alert("خطا در پردازش فایل بکاپ.");
+      alert("خطا در خواندن فایل.");
     }
   };
   reader.readAsText(file);
 }
 
+/* =============================================================
+   ۱۲. راه‌اندازی اولیه و اجرای برنامه
+   ============================================================= */
+function initializeApp() {
+  ensureSpansAvailable();
+  checkDayRollover();
+  updateLiveClock();
 
-document.addEventListener("DOMContentLoaded", () => {
   const focusInput = document.getElementById("dailyFocusInput");
   if (focusInput) focusInput.value = state.dailyFocus || "";
 
@@ -963,4 +1296,10 @@ document.addEventListener("DOMContentLoaded", () => {
   calculatePerformanceScore();
   renderTimerNumbers();
   updateParaCounters();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeApp);
+} else {
+  initializeApp();
+}
