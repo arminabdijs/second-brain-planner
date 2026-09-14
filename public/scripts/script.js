@@ -1,6 +1,3 @@
-/* =============================================================
-   ۱. مدیریت استیت (State Engine) و تقویم رسمی ایران
-   ============================================================= */
 const STORAGE_KEY = "google_m3_second_brain_v7_24h";
 
 function getTehranShamsiDateKey(offsetDays = 0) {
@@ -122,9 +119,6 @@ function saveState() {
   }
 }
 
-/* =============================================================
-   ۲. مدیریت عبور از ۲۴ ساعت و روتین‌ها
-   ============================================================= */
 function ensureSpansAvailable() {
   if (!state.customSpans || state.customSpans.length === 0) {
     let foundInArchive = false;
@@ -206,9 +200,6 @@ function checkDayRollover() {
 }
 setInterval(checkDayRollover, 10000);
 
-/* =============================================================
-   ۳. ساعت زنده سیستم
-   ============================================================= */
 const persianWeekDays = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
 
 function updateLiveClock() {
@@ -249,9 +240,6 @@ function updateDailyFocus(val) {
   saveState();
 }
 
-/* =============================================================
-   ۴. سیستم صوتی و آلارم
-   ============================================================= */
 let sharedAudioCtx = null;
 function getAudioContext() {
   if (!sharedAudioCtx) {
@@ -364,9 +352,7 @@ function showAlarmModal() {
     titleElem.textContent = isWork ? "زمان تمرکز به پایان رسید!" : "استراحت پایان یافت!";
   }
   if (subtitleElem) {
-    subtitleElem.textContent = isWork
-      ? "یک بازه کاری را به پایان رساندید. وقت استراحت است."
-      : "استراحت پایان یافت. آماده شروع تمرکز عمیق شوید.";
+    subtitleElem.textContent = isWork ? "یک بازه کاری را به پایان رساندید. وقت استراحت است." : "استراحت پایان یافت. آماده شروع تمرکز عمیق شوید.";
   }
 
   const select = document.getElementById("alarmSoundSelect");
@@ -433,9 +419,6 @@ function testCurrentAlarmSound() {
   testSoundTimeout = setTimeout(stopAlarmPlayback, 3000);
 }
 
-/* =============================================================
-   ۵. موتور تایمر تمرکز عمیق
-   ============================================================= */
 let timerTotalSeconds = 25 * 60;
 let timerRemaining = 25 * 60;
 let timerInterval = null;
@@ -566,9 +549,6 @@ function switchTimerMode() {
   resetTimer();
 }
 
-/* =============================================================
-   ۶. وظایف روزانه (Tasks)
-   ============================================================= */
 function filterTasks(type) {
   currentTaskFilter = type;
   ["all", "high", "pending"].forEach((t) => {
@@ -619,9 +599,7 @@ function renderTasks() {
 
     card.innerHTML = `
       <div class="flex items-center gap-2.5 flex-1 overflow-hidden ml-2">
-        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${
-          task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"
-        }">
+        <button onclick="toggleTask(${task.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${task.done ? "bg-[#a8c7fa] border-[#a8c7fa] text-[#04305c]" : "border-[#44474e] hover:border-[#a8c7fa]"}">
           ${task.done ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <div class="flex flex-col truncate">
@@ -672,9 +650,6 @@ function createTask() {
   titleInput.value = "";
 }
 
-/* =============================================================
-   ۷. پایش عادات روزانه (Habits Tracker)
-   ============================================================= */
 function renderHabits() {
   const container = document.getElementById("habitsList");
   if (!container) return;
@@ -696,9 +671,7 @@ function renderHabits() {
     card.className = "flex items-center justify-between p-2.5 rounded-2xl bg-[#171a1f] border border-[#2d3139] group";
     card.innerHTML = `
       <div class="flex items-center gap-2.5">
-        <button onclick="toggleHabit(${h.id})" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${
-          h.doneToday ? "bg-[#6dd58c] border-[#6dd58c] text-[#0a3818]" : "border-[#44474e] hover:border-[#6dd58c]"
-        }">
+        <button onclick="toggleHabit(${h.id})" class="w-6 h-6 rounded-lg border flex items-center justify-center transition ${h.doneToday ? "bg-[#6dd58c] border-[#6dd58c] text-[#0a3818]" : "border-[#44474e] hover:border-[#6dd58c]"}">
           ${h.doneToday ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <span class="text-xs ${h.doneToday ? "text-[#8e9198] line-through" : "text-[#e2e2e6]"}">${h.title}</span>
@@ -748,9 +721,6 @@ function createHabit() {
   input.value = "";
 }
 
-/* =============================================================
-   ۸. مدیریت پروژه‌ها (Projects)
-   ============================================================= */
 function renderProjects() {
   const container = document.getElementById("projectsList");
   const select = document.getElementById("taskProjectSelect");
@@ -824,9 +794,6 @@ function createProject() {
   catInput.value = "";
 }
 
-/* =============================================================
-   ۹. بلوک‌بندی ۲۴ ساعته و بازه‌های ماندگار روزانه
-   ============================================================= */
 const hours24Full = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0") + ":00");
 
 function switchTimelineTab(tab) {
@@ -935,15 +902,11 @@ function renderCustomSpans() {
     }
 
     const item = document.createElement("div");
-    item.className = `flex items-center justify-between p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] hover:border-[#44474e] transition group ${
-      span.done ? "opacity-60" : ""
-    }`;
+    item.className = `flex items-center justify-between p-3 rounded-2xl bg-[#171a1f] border border-[#2d3139] hover:border-[#44474e] transition group ${span.done ? "opacity-60" : ""}`;
 
     item.innerHTML = `
       <div class="flex items-center gap-3">
-        <button onclick="toggleCustomSpanDone(${span.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${
-          span.done ? "bg-[#ffd99f] border-[#ffd99f] text-[#3b2d00]" : "border-[#44474e] hover:border-[#ffd99f]"
-        }">
+        <button onclick="toggleCustomSpanDone(${span.id})" class="w-5 h-5 rounded-lg border flex items-center justify-center transition flex-shrink-0 ${span.done ? "bg-[#ffd99f] border-[#ffd99f] text-[#3b2d00]" : "border-[#44474e] hover:border-[#ffd99f]"}">
           ${span.done ? '<span class="material-symbols-rounded text-sm font-bold">check</span>' : ""}
         </button>
         <div class="font-mono text-xs text-[#a8c7fa] bg-[#111318] px-2.5 py-1 rounded-xl border border-[#2d3139]" dir="ltr">
@@ -1050,9 +1013,6 @@ function clearTimeline() {
   }
 }
 
-/* =============================================================
-   ۱۰. نمودار پیوستگی ۳۰ روزه با حضور کامل تک‌تک روزها بدون قیچی شدن
-   ============================================================= */
 function updateParaCounters() {
   const pProj = document.getElementById("paraProjects");
   const pTask = document.getElementById("paraTasks");
@@ -1227,9 +1187,6 @@ function calculatePerformanceScore() {
   chartInstance.update();
 }
 
-/* =============================================================
-   ۱۱. مودال‌ها و بکاپ
-   ============================================================= */
 function openModal(id) {
   const elem = document.getElementById(id);
   if (elem) {
@@ -1277,9 +1234,6 @@ function importBackup(e) {
   reader.readAsText(file);
 }
 
-/* =============================================================
-   ۱۲. راه‌اندازی اولیه و اجرای برنامه
-   ============================================================= */
 function initializeApp() {
   ensureSpansAvailable();
   checkDayRollover();
