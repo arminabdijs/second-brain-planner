@@ -53,7 +53,7 @@
   "timeBlocks": {},
   "customSpans": [
     { "id": 1, "start": "00:00", "end": "04:00", "title": "خواب عمیق و ریکاوری", "type": "fitness" },
-    { "id": 2, "start": "4:00", "end": "04:30", "title": "بیداری، کشش و صبحانه", "type": "routine" },
+    { "id": 2, "start": "04:00", "end": "04:30", "title": "بیداری، کشش و صبحانه", "type": "routine" },
     { "id": 3, "start": "04:40", "end": "05:45", "title": "زبان انگلیسی", "type": "deep" },
     { "id": 4, "start": "05:45", "end": "06:00", "title": "استراحت و چای", "type": "fitness" },
     { "id": 5, "start": "06:00", "end": "10:15", "title": "جاوااسکریپت", "type": "deep" },
