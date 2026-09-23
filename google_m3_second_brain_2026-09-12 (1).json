@@ -52,21 +52,23 @@
   "projects": [],
   "timeBlocks": {},
   "customSpans": [
-    { "id": 1, "start": "00:00", "end": "04:00", "title": "خواب عمیق و ریکاوری", "type": "fitness" },
-    { "id": 2, "start": "04:00", "end": "04:30", "title": "بیداری، کشش و صبحانه", "type": "routine" },
-    { "id": 3, "start": "04:40", "end": "05:45", "title": "زبان انگلیسی", "type": "deep" },
-    { "id": 4, "start": "05:45", "end": "06:00", "title": "استراحت و چای", "type": "fitness" },
-    { "id": 5, "start": "06:00", "end": "10:15", "title": "جاوااسکریپت", "type": "deep" },
+    { "id": 1, "start": "00:00", "end": "06:00", "title": "خواب عمیق و ریکاوری", "type": "fitness" },
+    { "id": 2, "start": "06:00", "end": "06:30", "title": "بیداری، کشش و صبحانه", "type": "routine" },
+    { "id": 3, "start": "06:40", "end": "07:45", "title": "زبان انگلیسی", "type": "deep" },
+    { "id": 4, "start": "07:45", "end": "08:00", "title": "استراحت و چای", "type": "fitness" },
+    { "id": 5, "start": "08:00", "end": "10:15", "title": "جاوااسکریپت", "type": "deep" },
     { "id": 6, "start": "10:15", "end": "10:30", "title": "استراحت", "type": "fitness" },
     { "id": 7, "start": "10:30", "end": "11:30", "title": "ریاضی و الگوریتم", "type": "deep" },
     { "id": 8, "start": "11:30", "end": "11:40", "title": "استراحت", "type": "fitness" },
     { "id": 9, "start": "11:40", "end": "12:20", "title": "PHP", "type": "deep" },
     { "id": 10, "start": "12:20", "end": "12:30", "title": "استراحت", "type": "fitness" },
     { "id": 11, "start": "12:30", "end": "13:10", "title": "پایتون", "type": "deep" },
-    { "id": 12, "start": "13:10", "end": "13:40", "title": "ناهار و آماده‌سازی برای کلاس/کار", "type": "routine" },
-    { "id": 13, "start": "13:40", "end": "23:20", "title": "کلاس و کار", "type": "routine" },
-    { "id": 14, "start": "23:20", "end": "23:40", "title": "شام", "type": "routine" },
-    { "id": 15, "start": "23:40", "end": "00:00", "title": "فیلم و سرگرمی", "type": "fitness" }
+    { "id": 12, "start": "13:10", "end": "13:40", "title": "ناهار", "type": "routine" },
+    { "id": 13, "start": "13:20", "end": "15:20", "title": "جاوااسکریپت", "type": "deep" },
+    { "id": 14, "start": "15:20", "end": "15:40", "title": "آماده‌سازی برای کلاس و کار", "type": "routine" },
+    { "id": 15, "start": "15:40", "end": "23:20", "title": "کلاس و کار", "type": "routine" },
+    { "id": 16, "start": "23:20", "end": "23:40", "title": "شام", "type": "routine" },
+    { "id": 17, "start": "23:40", "end": "00:00", "title": "فیلم و سرگرمی", "type": "fitness" }
   ],
   "history": {}
 }
