@@ -37,7 +37,7 @@ jobs:
           elif [ -f package-lock.json ]; then npm ci;
           else npm install; fi
       - name: Build static site
-        working-directory: node_modules/jiti
+        working-directory: .
         shell: bash
         run: |
           set -euo pipefail
@@ -47,7 +47,7 @@ jobs:
         shell: bash
         env:
           OUTPUT_DIR: 'dist'
-          APP: 'node_modules/jiti'
+          APP: '.'
         run: |
           set -euo pipefail
           candidates=(
