@@ -1,0 +1,75 @@
+name: GitPortfolio Sync Pro - Host Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gitportfolio-host-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ 'npm' = 'pnpm' ]; then pnpm install --frozen-lockfile || pnpm install;
+          elif [ 'npm' = 'yarn' ]; then corepack enable && yarn install --immutable || yarn install --frozen-lockfile;
+          elif [ 'npm' = 'bun' ]; then bun install --frozen-lockfile || bun install;
+          elif [ -f package-lock.json ]; then npm ci;
+          else npm install; fi
+      - name: Build static site
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build
+      - name: Resolve publish directory
+        id: output
+        shell: bash
+        env:
+          OUTPUT_DIR: 'dist'
+          APP: '.'
+        run: |
+          set -euo pipefail
+          candidates=(
+            "$OUTPUT_DIR"
+            "$APP/dist" "$APP/build" "$APP/out" "$APP/public" "$APP/site" "$APP/_site"
+            "$APP/.output/public" "$APP/docs/.vitepress/dist" "$APP/.vitepress/dist" "$APP/src/.vuepress/dist"
+            "$APP/public_html" "$APP/book"
+          )
+          for d in "${candidates[@]}"; do
+            if [ -n "$d" ] && [ "$d" != "__AUTO__" ] && [ -f "$d/index.html" ]; then echo "dir=$d" >> "$GITHUB_OUTPUT"; exit 0; fi
+          done
+          if [ -f "$APP/index.html" ]; then echo "dir=$APP" >> "$GITHUB_OUTPUT"; exit 0; fi
+          candidate=$(find "$APP" -type f -name index.html \
+            -not -path '*/node_modules/*' \
+            -not -path '*/.git/*' \
+            -not -path '*/.next/*' \
+            -not -path '*/.nuxt/*' \
+            -not -path '*/.svelte-kit/*' \
+            -not -path '*/vendor/*' \
+            -not -path '*/tests/*' \
+            -not -path '*/test/*' \
+            -not -path '*/examples/*' | head -n 1 || true)
+          if [ -n "$candidate" ]; then echo "dir=$(dirname "$candidate")" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo 'GitPortfolio Sync: no static index.html was produced. This project may require an external SSR/backend deployment or a custom output directory.' >&2
+          exit 1
+      - name: Upload host deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitportfolio-host-site
+          path: ${{ steps.output.outputs.dir }}
+          if-no-files-found: error
